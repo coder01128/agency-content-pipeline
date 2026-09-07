@@ -1,4 +1,5 @@
 """Test T-04: Claude tool use integration."""
+
 from __future__ import annotations
 
 import json
@@ -103,13 +104,9 @@ def test_handles_api_error(mock_anthropic_cls: MagicMock) -> None:
 def test_tool_schema_matches_section_fields() -> None:
     section_fields = set(Section.__annotations__.keys())
     schema_props = set(
-        SECTION_TOOL["input_schema"]["properties"]["sections"]["items"][
-            "properties"
-        ].keys()
+        SECTION_TOOL["input_schema"]["properties"]["sections"]["items"]["properties"].keys()
     )
     assert schema_props == section_fields
 
-    required = set(
-        SECTION_TOOL["input_schema"]["properties"]["sections"]["items"]["required"]
-    )
+    required = set(SECTION_TOOL["input_schema"]["properties"]["sections"]["items"]["required"])
     assert required == section_fields

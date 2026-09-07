@@ -16,8 +16,7 @@ def _auth(username: str, app_password: str) -> httpx.BasicAuth:
 def _handle_response(response: httpx.Response) -> None:
     if response.status_code == 401:
         raise WordPressError(
-            "WordPress authentication failed (401). "
-            "Check WP_USERNAME and WP_APP_PASSWORD."
+            "WordPress authentication failed (401). Check WP_USERNAME and WP_APP_PASSWORD."
         )
     if response.status_code == 404:
         raise WordPressError(
@@ -118,12 +117,8 @@ def update_draft_page(
     }
 
 
-def _post_with_retry(
-    url: str, payload: dict, username: str, app_password: str
-) -> httpx.Response:
-    response = httpx.post(
-        url, json=payload, auth=_auth(username, app_password), timeout=_TIMEOUT
-    )
+def _post_with_retry(url: str, payload: dict, username: str, app_password: str) -> httpx.Response:
+    response = httpx.post(url, json=payload, auth=_auth(username, app_password), timeout=_TIMEOUT)
     if response.status_code >= 500:
         response = httpx.post(
             url, json=payload, auth=_auth(username, app_password), timeout=_TIMEOUT

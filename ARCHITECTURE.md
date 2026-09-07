@@ -21,31 +21,31 @@ If the reviewer rejects three times, the graph exits without publishing and prin
 
 ```python
 class Section(TypedDict):
-    title: str                    # Page or section heading
-    slug: str                     # URL-friendly slug
-    body: str                     # HTML-formatted copy
-    meta_description: str         # SEO meta, max 160 chars
-    target_page: str | None       # Existing WP slug to update, or None = new
+    title: str  # Page or section heading
+    body: str  # HTML-formatted copy
+    meta_description: str  # SEO meta, max 160 chars
+    target_page: str | None  # Existing WP slug to update, or None = new
 
-class PipelineState(TypedDict):
-    brief_source: str             # Google Doc URL, file path, or raw text
-    brief_content: str            # Parsed brief text
-    client_name: str              # Extracted from brief
 
-    wp_site_url: str              # Target WordPress site
-    wp_existing_pages: list[dict] # [{id, slug, title, status}]
+class PipelineState(TypedDict, total=False):
+    brief_source: str  # File path or raw text (Google Docs planned)
+    brief_content: str  # Parsed brief text
+    client_name: str  # Extracted from brief heading
 
-    sections: list[Section]       # Generated content
-    generation_feedback: str      # Reviewer's change request
-    generation_attempts: int      # Counter, max 3
+    wp_site_url: str  # Target WordPress site
+    wp_existing_pages: list[dict]  # [{id, slug, title, status}]
 
-    approval_status: str          # "pending" | "approved" | "rejected" | "edited"
+    sections: list[Section]  # Generated content
+    generation_feedback: str | None  # Reviewer's change request
+    generation_attempts: int  # Counter, max 3
 
-    draft_urls: list[str]         # Created WP draft page URLs
+    approval_status: str  # "approved" | "rejected"
 
-    notification_sent: bool       # True after notify completes
+    draft_urls: list[str]  # Created WP draft page URLs
 
-    errors: list[str]             # Accumulated error messages
+    notification_sent: bool  # True after notify completes
+
+    errors: list[str]  # Accumulated error messages
 ```
 
 ## Node Contracts
@@ -53,7 +53,7 @@ class PipelineState(TypedDict):
 ### intake
 - **Reads:** `brief_source`
 - **Writes:** `brief_content`, `client_name`
-- **External calls:** Google Docs API (optional), local filesystem
+- **External calls:** Local filesystem (Google Docs planned, not yet implemented)
 - **Failure mode:** Unreadable source → error appended, empty `brief_content`
 
 ### analyze_site
@@ -85,7 +85,7 @@ class PipelineState(TypedDict):
 - **Reads:** `draft_urls`, `client_name`
 - **Writes:** `notification_sent`
 - **External calls:** Slack webhook (optional), SendGrid (optional)
-- **Failure mode:** Notification failure → error appended, `notification_sent = False`
+- **Failure mode:** Notification failure → error appended, `notification_sent` still True (pipeline completed)
 
 ## Conditional Edges
 

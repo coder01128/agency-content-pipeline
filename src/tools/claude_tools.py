@@ -37,8 +37,7 @@ SECTION_TOOL: dict = {
                         "target_page": {
                             "type": ["string", "null"],
                             "description": (
-                                "Slug of existing WP page to update, "
-                                "or null for a new page"
+                                "Slug of existing WP page to update, or null for a new page"
                             ),
                         },
                     },
@@ -97,14 +96,14 @@ def generate_sections(
                 tool_choice={"type": "tool", "name": "create_sections"},
             )
             break
-        except anthropic.RateLimitError:
+        except anthropic.RateLimitError as exc:
             if attempt == _MAX_RETRIES:
-                raise ClaudeToolError("Claude API rate limit exceeded after retries.")
+                raise ClaudeToolError("Claude API rate limit exceeded after retries.") from exc
             time.sleep(_RETRY_DELAY * (attempt + 1))
-        except anthropic.AuthenticationError:
+        except anthropic.AuthenticationError as exc:
             raise ClaudeToolError(
                 "Claude API authentication failed. Check ANTHROPIC_API_KEY."
-            )
+            ) from exc
         except anthropic.APIError as exc:
             raise ClaudeToolError(f"Claude API error: {exc}") from exc
 

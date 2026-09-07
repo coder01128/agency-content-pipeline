@@ -1,4 +1,5 @@
 """Test T-03: WordPress REST client with draft-only safety constraint."""
+
 from __future__ import annotations
 
 import json
@@ -119,9 +120,7 @@ def test_get_pages_handles_401() -> None:
 
 @respx.mock
 def test_get_pages_handles_empty_site() -> None:
-    respx.get(f"{SITE}/wp-json/wp/v2/pages").mock(
-        return_value=httpx.Response(200, json=[])
-    )
+    respx.get(f"{SITE}/wp-json/wp/v2/pages").mock(return_value=httpx.Response(200, json=[]))
 
     pages = get_pages(SITE, USER, PASS)
     assert pages == []

@@ -50,15 +50,15 @@
 
 **Trade-off:** If someone wants to extend this to auto-publish, they need to change the code and the tests. That friction is intentional.
 
-## 6. Google Docs as Optional Integration
+## 6. Google Docs Deferred to Post-v1
 
 **Context:** Briefs could come from Google Docs, local files, or raw text. How much weight to give each input path?
 
-**Decision:** Local `.md` file is the default and primary path. Google Docs is optional — the pipeline runs without it.
+**Decision:** Local `.md` file and raw text are the only implemented input paths in v1. Google Docs integration is designed for but not built — the intake node has a clearly marked TODO where it would slot in.
 
-**Rationale:** Google service account auth is the fiddliest part of the setup. Making it required would mean every person evaluating this repo hits a 15-minute auth detour before seeing the pipeline run. Local file input works immediately. Google Docs exists to show integration capability without blocking the demo.
+**Rationale:** Google service account auth is the fiddliest part of the setup. Making it a v1 requirement would mean every person evaluating this repo hits a 15-minute auth detour before seeing the pipeline run. Local file input works immediately. The `pyproject.toml` includes Google API dependencies as an optional extra (`pip install -e ".[google]"`) so the integration path is ready.
 
-**Trade-off:** Google Docs path gets less testing and attention. Acceptable for a portfolio piece.
+**Trade-off:** One fewer integration to demo. Acceptable — the pipeline's value is in the LangGraph orchestration and Claude tool use, not in reading a Google Doc.
 
 ## 7. No Streaming in v1
 
@@ -69,3 +69,13 @@
 **Rationale:** When using `tool_choice` to force tool use, the response is a single structured block. Streaming adds implementation complexity (chunked tool call assembly, partial state handling) with no meaningful UX benefit in a CLI pipeline. The user sees "Generating..." and then the complete output. Streaming would be valuable in a web UI where you want to show progress — noted as a production enhancement.
 
 **Trade-off:** Longer apparent wait during generation. For a 3-4 section brief, this is a few seconds — negligible.
+
+## 8. Error Accumulation Over Fail-Fast
+
+**Context:** When a node encounters an external failure (WordPress unreachable, Claude API error, missing config), should the graph halt or continue?
+
+**Decision:** Every node catches its own exceptions, appends a message to `state["errors"]`, and returns partial state. The graph always runs to completion. Errors are summarized at the end.
+
+**Rationale:** In an agency context, partial output is more useful than no output. If WordPress is down but Claude generates good sections, the reviewer should still see them. If one of three pages fails to publish, the two that succeeded shouldn't be rolled back. Fail-fast is appropriate for libraries; for a user-facing pipeline, graceful degradation and clear error reporting is better.
+
+**Trade-off:** Downstream nodes must handle missing upstream data (empty sections, empty page list). Every node already does this — they check for empty inputs and short-circuit cleanly.

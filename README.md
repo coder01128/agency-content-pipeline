@@ -12,7 +12,7 @@ Built to demonstrate agentic workflow design, Anthropic API tool use, multi-serv
 ## How It Works
 
 ```
-Brief (file / Google Doc / text)
+Brief (file / raw text)
         │
         ▼
    ┌─────────┐
@@ -63,7 +63,7 @@ python -m src.graph \
 | Orchestration | LangGraph (state machine with typed state) |
 | LLM | Anthropic Claude API with tool use |
 | Content target | WordPress REST API |
-| Brief source | Local markdown, Google Docs API (optional) |
+| Brief source | Local markdown or raw text (Google Docs planned) |
 | Language | Python 3.11+ |
 | HTTP client | httpx |
 | Testing | pytest + respx |

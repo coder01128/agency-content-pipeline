@@ -1,12 +1,16 @@
 """Tests for wired nodes: T-06 intake, T-07 analyze_site, T-08 generate, T-09 review."""
+
 from __future__ import annotations
 
 from pathlib import Path
 from unittest.mock import patch
 
-import pytest
-
+from src.nodes.analyze_site import analyze_site
+from src.nodes.generate import generate
 from src.nodes.intake import intake
+from src.nodes.notify import notify
+from src.nodes.publish import publish
+from src.nodes.review import review
 from src.state import PipelineState, Section
 
 SAMPLE_BRIEF = Path(__file__).parent.parent / "examples" / "sample_brief.md"
@@ -61,8 +65,6 @@ def test_intake_strips_client_brief_prefix() -> None:
 
 
 # --- T-07: analyze_site node ---
-
-from src.nodes.analyze_site import analyze_site
 
 
 @patch("src.nodes.analyze_site.get_pages")
@@ -129,8 +131,6 @@ def test_analyze_site_passes_credentials(mock_config, mock_get_pages) -> None:
 
 
 # --- T-08: generate node ---
-
-from src.nodes.generate import generate
 
 FAKE_SECTIONS: list[Section] = [
     {
@@ -253,8 +253,6 @@ def test_generate_handles_api_failure(mock_config, mock_gen) -> None:
 
 # --- T-09: review node ---
 
-from src.nodes.review import review
-
 
 def test_review_approve(monkeypatch) -> None:
     monkeypatch.setattr("builtins.input", lambda prompt: "a")
@@ -299,8 +297,6 @@ def test_review_quit(monkeypatch) -> None:
 
 
 # --- T-10: publish node ---
-
-from src.nodes.publish import publish
 
 
 def _make_settings():
@@ -365,9 +361,7 @@ def test_publish_updates_existing_page(mock_config, mock_update) -> None:
                 "target_page": "home",
             }
         ],
-        "wp_existing_pages": [
-            {"id": 2, "slug": "home", "title": "Home", "status": "publish"}
-        ],
+        "wp_existing_pages": [{"id": 2, "slug": "home", "title": "Home", "status": "publish"}],
         "errors": [],
     }
     result = publish(state)
@@ -385,11 +379,17 @@ def test_publish_all_calls_use_draft_status(mock_config, mock_update, mock_creat
     """CRITICAL SAFETY TEST: publish node must only ever produce draft pages."""
     mock_config.return_value = _make_settings()
     mock_create.return_value = {
-        "id": 30, "slug": "new", "title": "New", "status": "draft",
+        "id": 30,
+        "slug": "new",
+        "title": "New",
+        "status": "draft",
         "link": "https://test.local/?page_id=30",
     }
     mock_update.return_value = {
-        "id": 2, "slug": "home", "title": "Home", "status": "draft",
+        "id": 2,
+        "slug": "home",
+        "title": "Home",
+        "status": "draft",
         "link": "https://test.local/home/",
     }
 
@@ -398,9 +398,7 @@ def test_publish_all_calls_use_draft_status(mock_config, mock_update, mock_creat
             {"title": "Home", "body": "<p>H</p>", "meta_description": "H", "target_page": "home"},
             {"title": "New", "body": "<p>N</p>", "meta_description": "N", "target_page": None},
         ],
-        "wp_existing_pages": [
-            {"id": 2, "slug": "home", "title": "Home", "status": "publish"}
-        ],
+        "wp_existing_pages": [{"id": 2, "slug": "home", "title": "Home", "status": "publish"}],
         "errors": [],
     }
     publish(state)
@@ -455,7 +453,10 @@ def test_publish_partial_failure(mock_config, mock_create) -> None:
 def test_publish_returns_urls_for_successes(mock_config, mock_create) -> None:
     mock_config.return_value = _make_settings()
     mock_create.return_value = {
-        "id": 50, "slug": "gallery", "title": "Gallery", "status": "draft",
+        "id": 50,
+        "slug": "gallery",
+        "title": "Gallery",
+        "status": "draft",
         "link": "https://test.local/?page_id=50",
     }
 
@@ -473,8 +474,6 @@ def test_publish_returns_urls_for_successes(mock_config, mock_create) -> None:
 
 
 # --- T-11: notify node ---
-
-from src.nodes.notify import notify
 
 
 @patch("src.nodes.notify.load_config")

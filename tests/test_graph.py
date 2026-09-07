@@ -1,14 +1,14 @@
 """T-12 + T-13: End-to-end integration tests and error handling hardening."""
+
 from __future__ import annotations
 
-import json
 import subprocess
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from src.graph import compile_graph
-from src.state import PipelineState, Section
+from src.state import Section
 
 SAMPLE_BRIEF = str(Path(__file__).parent.parent / "examples" / "sample_brief.md")
 
@@ -79,22 +79,29 @@ def _wp_update_response() -> dict:
 @patch("src.nodes.analyze_site.get_pages", return_value=MOCK_WP_PAGES)
 @patch("src.nodes.analyze_site.load_config")
 def test_happy_path_e2e(
-    mock_az_cfg, mock_az_pages,
-    mock_gen_cfg, mock_gen_sections,
-    mock_pub_cfg, mock_pub_create, mock_pub_update,
-    mock_notify_cfg, mock_input,
+    mock_az_cfg,
+    mock_az_pages,
+    mock_gen_cfg,
+    mock_gen_sections,
+    mock_pub_cfg,
+    mock_pub_create,
+    mock_pub_update,
+    mock_notify_cfg,
+    mock_input,
 ):
     cfg = _make_settings()
     for m in (mock_az_cfg, mock_gen_cfg, mock_pub_cfg, mock_notify_cfg):
         m.return_value = cfg
 
     app = compile_graph()
-    result = app.invoke({
-        "brief_source": SAMPLE_BRIEF,
-        "wp_site_url": "https://test.local",
-        "generation_attempts": 0,
-        "errors": [],
-    })
+    result = app.invoke(
+        {
+            "brief_source": SAMPLE_BRIEF,
+            "wp_site_url": "https://test.local",
+            "generation_attempts": 0,
+            "errors": [],
+        }
+    )
 
     assert result["approval_status"] == "approved"
     assert result["notification_sent"] is True
@@ -113,10 +120,15 @@ def test_happy_path_e2e(
 @patch("src.nodes.analyze_site.get_pages", return_value=MOCK_WP_PAGES)
 @patch("src.nodes.analyze_site.load_config")
 def test_reject_then_approve_e2e(
-    mock_az_cfg, mock_az_pages,
-    mock_gen_cfg, mock_gen_sections,
-    mock_pub_cfg, mock_pub_create, mock_pub_update,
-    mock_notify_cfg, monkeypatch,
+    mock_az_cfg,
+    mock_az_pages,
+    mock_gen_cfg,
+    mock_gen_sections,
+    mock_pub_cfg,
+    mock_pub_create,
+    mock_pub_update,
+    mock_notify_cfg,
+    monkeypatch,
 ):
     cfg = _make_settings()
     for m in (mock_az_cfg, mock_gen_cfg, mock_pub_cfg, mock_notify_cfg):
@@ -126,12 +138,14 @@ def test_reject_then_approve_e2e(
     monkeypatch.setattr("builtins.input", lambda prompt: next(inputs))
 
     app = compile_graph()
-    result = app.invoke({
-        "brief_source": SAMPLE_BRIEF,
-        "wp_site_url": "https://test.local",
-        "generation_attempts": 0,
-        "errors": [],
-    })
+    result = app.invoke(
+        {
+            "brief_source": SAMPLE_BRIEF,
+            "wp_site_url": "https://test.local",
+            "generation_attempts": 0,
+            "errors": [],
+        }
+    )
 
     assert result["generation_attempts"] == 2
     assert result["approval_status"] == "approved"
@@ -144,8 +158,10 @@ def test_reject_then_approve_e2e(
 @patch("src.nodes.analyze_site.get_pages", return_value=MOCK_WP_PAGES)
 @patch("src.nodes.analyze_site.load_config")
 def test_triple_reject_exits_e2e(
-    mock_az_cfg, mock_az_pages,
-    mock_gen_cfg, mock_gen_sections,
+    mock_az_cfg,
+    mock_az_pages,
+    mock_gen_cfg,
+    mock_gen_sections,
     monkeypatch,
 ):
     cfg = _make_settings()
@@ -156,12 +172,14 @@ def test_triple_reject_exits_e2e(
     monkeypatch.setattr("builtins.input", lambda prompt: next(inputs))
 
     app = compile_graph()
-    result = app.invoke({
-        "brief_source": SAMPLE_BRIEF,
-        "wp_site_url": "https://test.local",
-        "generation_attempts": 0,
-        "errors": [],
-    })
+    result = app.invoke(
+        {
+            "brief_source": SAMPLE_BRIEF,
+            "wp_site_url": "https://test.local",
+            "generation_attempts": 0,
+            "errors": [],
+        }
+    )
 
     assert result["generation_attempts"] == 3
     assert result["approval_status"] == "rejected"
@@ -184,22 +202,28 @@ def test_triple_reject_exits_e2e(
 @patch("src.nodes.analyze_site.get_pages", side_effect=ConnectionError("Connection refused"))
 @patch("src.nodes.analyze_site.load_config")
 def test_graph_completes_when_wp_unreachable(
-    mock_az_cfg, mock_az_pages,
-    mock_gen_cfg, mock_gen_sections,
-    mock_pub_cfg, mock_pub_create,
-    mock_notify_cfg, mock_input,
+    mock_az_cfg,
+    mock_az_pages,
+    mock_gen_cfg,
+    mock_gen_sections,
+    mock_pub_cfg,
+    mock_pub_create,
+    mock_notify_cfg,
+    mock_input,
 ):
     cfg = _make_settings()
     for m in (mock_az_cfg, mock_gen_cfg, mock_pub_cfg, mock_notify_cfg):
         m.return_value = cfg
 
     app = compile_graph()
-    result = app.invoke({
-        "brief_source": SAMPLE_BRIEF,
-        "wp_site_url": "https://test.local",
-        "generation_attempts": 0,
-        "errors": [],
-    })
+    result = app.invoke(
+        {
+            "brief_source": SAMPLE_BRIEF,
+            "wp_site_url": "https://test.local",
+            "generation_attempts": 0,
+            "errors": [],
+        }
+    )
 
     assert result["notification_sent"] is True
     assert any("unreachable" in e.lower() for e in result["errors"])
@@ -214,22 +238,28 @@ def test_graph_completes_when_wp_unreachable(
 @patch("src.nodes.analyze_site.get_pages", return_value=MOCK_WP_PAGES)
 @patch("src.nodes.analyze_site.load_config")
 def test_graph_completes_when_claude_returns_garbage(
-    mock_az_cfg, mock_az_pages,
-    mock_gen_cfg, mock_gen_sections,
-    mock_pub_cfg, mock_pub_create,
-    mock_notify_cfg, mock_input,
+    mock_az_cfg,
+    mock_az_pages,
+    mock_gen_cfg,
+    mock_gen_sections,
+    mock_pub_cfg,
+    mock_pub_create,
+    mock_notify_cfg,
+    mock_input,
 ):
     cfg = _make_settings()
     for m in (mock_az_cfg, mock_gen_cfg, mock_pub_cfg, mock_notify_cfg):
         m.return_value = cfg
 
     app = compile_graph()
-    result = app.invoke({
-        "brief_source": SAMPLE_BRIEF,
-        "wp_site_url": "https://test.local",
-        "generation_attempts": 0,
-        "errors": [],
-    })
+    result = app.invoke(
+        {
+            "brief_source": SAMPLE_BRIEF,
+            "wp_site_url": "https://test.local",
+            "generation_attempts": 0,
+            "errors": [],
+        }
+    )
 
     assert result["notification_sent"] is True
     assert any("generation failed" in e.lower() for e in result["errors"])
@@ -243,8 +273,12 @@ def test_config_validation_prints_clear_errors():
     for var in ("ANTHROPIC_API_KEY", "WP_SITE_URL", "WP_USERNAME", "WP_APP_PASSWORD"):
         clean_env.pop(var, None)
 
+    script = (
+        "import dotenv; dotenv.load_dotenv = lambda *a, **k: None; "
+        "from src.config import print_config_checklist; print_config_checklist()"
+    )
     result = subprocess.run(
-        [sys.executable, "-m", "src.config"],
+        [sys.executable, "-c", script],
         capture_output=True,
         text=True,
         env=clean_env,

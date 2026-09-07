@@ -1,4 +1,5 @@
 """Test T-02: Graph skeleton — conditional routing still works with wired nodes."""
+
 from __future__ import annotations
 
 from unittest.mock import patch

@@ -1,0 +1,40 @@
+{
+  "brief_source": "examples/sample_brief.md",
+  "brief_content": "# Client Brief: GreenScape Landscaping\n\n## Business\n\nGreenScape Landscaping — residential and commercial landscaping in Phoenix, AZ. 15 years in business, 12 employees, family-owned.\n\n## Website Goal\n\nReplace the current single-page WordPress site with a multi-page site that ranks for local search terms and converts visitors into quote requests...",
+  "client_name": "GreenScape Landscaping",
+  "wp_site_url": "http://your-site.local",
+  "wp_existing_pages": [
+    {"id": 2, "slug": "home", "title": "Home", "status": "publish"},
+    {"id": 5, "slug": "contact", "title": "Contact Us", "status": "publish"}
+  ],
+  "sections": [
+    {
+      "title": "Home",
+      "body": "<h1>Phoenix's Trusted Landscaping Partner for 15 Years</h1><p>GreenScape Landscaping delivers residential and commercial landscaping across the Phoenix metro area. Same crew on every job. Licensed, insured, and committed to your property.</p><p><a href='/contact'>Request a Free Quote</a></p>",
+      "meta_description": "GreenScape Landscaping - 15 years of residential and commercial landscaping in Phoenix AZ. Request a free quote today.",
+      "target_page": "home"
+    },
+    {
+      "title": "Our Services",
+      "body": "<h1>Landscaping Services</h1><h2>Residential Lawn Care</h2><p>Starting from $250/month. Weekly mowing, edging, and seasonal treatments.</p><h2>Commercial Maintenance</h2><p>Starting from $800/month. Full-service contracts for offices, HOAs, and retail.</p><h2>Landscape Design & Installation</h2><p>Custom designs starting from $1,500. From concept to completion.</p>",
+      "meta_description": "Professional landscaping services in Phoenix - residential lawn care, commercial maintenance, and custom landscape design.",
+      "target_page": null
+    },
+    {
+      "title": "About Us",
+      "body": "<h1>About GreenScape Landscaping</h1><p>What started in a garage 15 years ago has grown into a 12-person crew serving the entire Phoenix metro. We're a family-owned business that takes pride in showing up with the same crew every time.</p><h2>Certifications</h2><ul><li>Arizona ROC Licensed</li><li>Irrigation Certified</li></ul>",
+      "meta_description": "GreenScape Landscaping - family-owned, 15 years in Phoenix. Arizona ROC licensed, irrigation certified.",
+      "target_page": null
+    }
+  ],
+  "generation_attempts": 1,
+  "generation_feedback": null,
+  "approval_status": "approved",
+  "draft_urls": [
+    "http://your-site.local/home/",
+    "http://your-site.local/?page_id=20",
+    "http://your-site.local/?page_id=21"
+  ],
+  "notification_sent": true,
+  "errors": []
+}

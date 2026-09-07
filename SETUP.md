@@ -18,7 +18,8 @@ pip install -e ".[dev]"
 ## 2. Create Your .env File
 
 ```bash
-cp .env.example .env
+cp .env.example .env          # Linux/macOS
+copy .env.example .env        # Windows
 ```
 
 Open `.env` and fill in the values below.
@@ -69,11 +70,11 @@ curl -s "http://your-site.local/wp-json/wp/v2/pages" | python -m json.tool | hea
 
 You should see a JSON array. If you get a 404, your site may not have the REST API enabled.
 
-## 5. Google Docs (Optional)
+## 5. Google Docs (Planned — Not Yet Implemented)
 
-The pipeline works with local `.md` files. Google Docs support is an optional bonus.
+The pipeline works with local `.md` files. Google Docs integration is planned but not yet built. The intake node has a placeholder for it.
 
-If you want to enable it:
+If you want to prepare for future support:
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com)
 2. Create a project (or use an existing one)
@@ -117,13 +118,17 @@ This prints a checklist showing which services are configured and which are miss
 Expected output when everything is set up:
 
 ```
-✓ ANTHROPIC_API_KEY     configured
-✓ WP_SITE_URL           http://your-site.local
-✓ WP_USERNAME           configured
-✓ WP_APP_PASSWORD       configured
-○ GOOGLE_SERVICE_ACCOUNT not configured (optional)
-○ SLACK_WEBHOOK_URL      not configured (optional)
-○ SENDGRID_API_KEY       not configured (optional)
+  [ok] ANTHROPIC_API_KEY              configured
+  [ok] WP_SITE_URL                    http://your-site.local
+  [ok] WP_USERNAME                    configured
+  [ok] WP_APP_PASSWORD                configured
+
+  [--] GOOGLE_SERVICE_ACCOUNT_JSON    not configured (optional)
+  [--] SLACK_WEBHOOK_URL              not configured (optional)
+  [--] SENDGRID_API_KEY               not configured (optional)
+  [--] NOTIFICATION_EMAIL             not configured (optional)
+
+  All required variables set. Ready to run.
 ```
 
 ## 8. Run the Demo
