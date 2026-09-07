@@ -112,9 +112,9 @@ def generate_sections(
             raw_sections = block.input.get("sections", [])
             return [
                 Section(
-                    title=s["title"],
-                    body=s["body"],
-                    meta_description=s["meta_description"],
+                    title=s.get("title", "Untitled"),
+                    body=s.get("body", ""),
+                    meta_description=s.get("meta_description", ""),
                     target_page=s.get("target_page"),
                 )
                 for s in raw_sections
