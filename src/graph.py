@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 
 from langgraph.graph import END, StateGraph
 
@@ -68,6 +69,12 @@ def main() -> None:
     final_state = app.invoke(initial_state)
     print("\n--- Final State ---")
     print(json.dumps({k: v for k, v in final_state.items()}, indent=2, default=str))
+
+    errors = final_state.get("errors", [])
+    if errors:
+        print(f"\n--- {len(errors)} error(s) encountered ---", file=sys.stderr)
+        for err in errors:
+            print(f"  - {err}", file=sys.stderr)
 
 
 if __name__ == "__main__":
