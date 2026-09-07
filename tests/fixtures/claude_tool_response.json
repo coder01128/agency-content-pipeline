@@ -5,6 +5,10 @@
   "model": "claude-sonnet-5",
   "content": [
     {
+      "type": "thinking",
+      "thinking": "I need to create website sections for GreenScape Landscaping based on the brief."
+    },
+    {
       "type": "tool_use",
       "id": "toolu_01A09q90qw90lq917835lhSR",
       "name": "create_sections",

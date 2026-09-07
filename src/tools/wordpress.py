@@ -28,12 +28,16 @@ def _handle_response(response: httpx.Response) -> None:
 
 def get_pages(site_url: str, username: str, app_password: str) -> list[dict]:
     url = f"{site_url.rstrip('/')}/wp-json/wp/v2/pages"
-    params = {"per_page": 100, "status": "publish,draft"}
+    auth = _auth(username, app_password)
 
     try:
         response = httpx.get(
-            url, params=params, auth=_auth(username, app_password), timeout=_TIMEOUT
+            url, params={"per_page": 100, "status": "publish,draft"}, auth=auth, timeout=_TIMEOUT
         )
+        if response.status_code == 400:
+            response = httpx.get(
+                url, params={"per_page": 100, "status": "publish"}, auth=auth, timeout=_TIMEOUT
+            )
     except httpx.HTTPStatusError:
         raise
     except httpx.HTTPError as exc:

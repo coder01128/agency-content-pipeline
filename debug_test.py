@@ -16,7 +16,8 @@ try:
         max_tokens=50,
         messages=[{"role": "user", "content": "Say hello"}]
     )
-    print("SUCCESS:", response.content[0].text)
+    text = next((b.text for b in response.content if b.type == "text"), None)
+    print("SUCCESS:", text)
 except Exception as e:
     print("RAW ERROR TYPE:", type(e).__name__)
     print("RAW ERROR:", e)
