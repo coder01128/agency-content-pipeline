@@ -1,0 +1,34 @@
+[
+  {
+    "id": 2,
+    "slug": "home",
+    "status": "publish",
+    "title": {"rendered": "Home"},
+    "content": {"rendered": "<p>Welcome to GreenScape Landscaping.</p>"},
+    "link": "https://greenscape.local/home/"
+  },
+  {
+    "id": 5,
+    "slug": "contact",
+    "status": "publish",
+    "title": {"rendered": "Contact Us"},
+    "content": {"rendered": "<p>Get in touch for a free quote.</p>"},
+    "link": "https://greenscape.local/contact/"
+  },
+  {
+    "id": 8,
+    "slug": "about-draft",
+    "status": "draft",
+    "title": {"rendered": "About Us"},
+    "content": {"rendered": "<p>Draft about page.</p>"},
+    "link": "https://greenscape.local/?page_id=8"
+  },
+  {
+    "id": 12,
+    "slug": "services",
+    "status": "publish",
+    "title": {"rendered": "Our Services"},
+    "content": {"rendered": "<p>Residential and commercial landscaping.</p>"},
+    "link": "https://greenscape.local/services/"
+  }
+]
