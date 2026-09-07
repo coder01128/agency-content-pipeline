@@ -50,7 +50,7 @@ def test_sends_correct_tool_definition(mock_anthropic_cls: MagicMock) -> None:
     call_kwargs = mock_client.messages.create.call_args.kwargs
     assert call_kwargs["tools"] == [SECTION_TOOL]
     assert call_kwargs["tool_choice"] == {"type": "tool", "name": "create_sections"}
-    assert call_kwargs["model"] == "claude-sonnet-4-20250514"
+    assert call_kwargs["model"] == "claude-sonnet-5"
 
 
 @patch("src.tools.claude_tools.anthropic.Anthropic")

@@ -111,7 +111,7 @@ pytest tests/test_wordpress.py -v
   - `SECTION_TOOL` — the tool definition dict (name, description, input_schema) matching the `Section` shape
   - `generate_sections(brief: str, existing_pages: list[dict], feedback: str | None, api_key: str) -> list[Section]`
     - Build messages: system prompt (you are a web copywriter for agencies...) + user message (the brief + existing pages + optional feedback)
-    - Call `anthropic.Anthropic().messages.create()` with model `claude-sonnet-4-20250514`, tool definitions, `tool_choice={"type": "tool", "name": "create_sections"}`
+    - Call `anthropic.Anthropic().messages.create()` with model `claude-sonnet-5`, tool definitions, `tool_choice={"type": "tool", "name": "create_sections"}`
     - Parse tool use response → extract sections list
     - Return typed `list[Section]`
   - Handle API errors: rate limit → retry with backoff, auth error → clear message, malformed tool response → error

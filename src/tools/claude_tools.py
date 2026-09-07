@@ -88,7 +88,7 @@ def generate_sections(
     for attempt in range(_MAX_RETRIES + 1):
         try:
             response = client.messages.create(
-                model="claude-sonnet-4-20250514",
+                model="claude-sonnet-5",
                 max_tokens=4096,
                 system=_SYSTEM_PROMPT,
                 messages=[{"role": "user", "content": user_content}],
