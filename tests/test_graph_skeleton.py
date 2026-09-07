@@ -8,17 +8,24 @@ from src.graph import compile_graph
 from src.state import PipelineState
 
 
+@patch("builtins.input", return_value="a")
+@patch("src.nodes.generate.generate_sections", return_value=[])
+@patch("src.nodes.generate.load_config")
 @patch("src.nodes.analyze_site.load_config")
 @patch("src.nodes.analyze_site.get_pages", return_value=[])
-def test_happy_path_all_nodes_fire(mock_get_pages, mock_config):
+def test_happy_path_all_nodes_fire(
+    mock_wp_pages, mock_az_config, mock_gen_config, mock_gen_sections, mock_input
+):
     from src.config import Settings
 
-    mock_config.return_value = Settings(
+    cfg = Settings(
         anthropic_api_key="sk-test",
         wp_site_url="https://example.com",
         wp_username="admin",
         wp_app_password="pass",
     )
+    mock_az_config.return_value = cfg
+    mock_gen_config.return_value = cfg
 
     app = compile_graph()
     initial: PipelineState = {

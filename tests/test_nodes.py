@@ -1,4 +1,4 @@
-"""Tests for T-06 (intake) and T-07 (analyze_site) wired nodes."""
+"""Tests for wired nodes: T-06 intake, T-07 analyze_site, T-08 generate, T-09 review."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -7,7 +7,7 @@ from unittest.mock import patch
 import pytest
 
 from src.nodes.intake import intake
-from src.state import PipelineState
+from src.state import PipelineState, Section
 
 SAMPLE_BRIEF = Path(__file__).parent.parent / "examples" / "sample_brief.md"
 
@@ -126,3 +126,173 @@ def test_analyze_site_passes_credentials(mock_config, mock_get_pages) -> None:
     analyze_site(state)
 
     mock_get_pages.assert_called_once_with("https://mysite.local", "editor", "secret-pass")
+
+
+# --- T-08: generate node ---
+
+from src.nodes.generate import generate
+
+FAKE_SECTIONS: list[Section] = [
+    {
+        "title": "Home",
+        "body": "<h1>Welcome</h1>",
+        "meta_description": "Home page",
+        "target_page": "home",
+    },
+    {
+        "title": "About",
+        "body": "<h1>About Us</h1>",
+        "meta_description": "About page",
+        "target_page": None,
+    },
+]
+
+
+@patch("src.nodes.generate.generate_sections", return_value=FAKE_SECTIONS)
+@patch("src.nodes.generate.load_config")
+def test_generate_calls_with_brief_and_pages(mock_config, mock_gen) -> None:
+    from src.config import Settings
+
+    mock_config.return_value = Settings(
+        anthropic_api_key="sk-test",
+        wp_site_url="https://test.local",
+        wp_username="admin",
+        wp_app_password="pass",
+    )
+
+    state: PipelineState = {
+        "brief_content": "Build a site for Acme",
+        "wp_existing_pages": [{"id": 1, "slug": "home", "title": "Home", "status": "publish"}],
+        "generation_attempts": 0,
+        "errors": [],
+    }
+    result = generate(state)
+
+    mock_gen.assert_called_once_with(
+        brief="Build a site for Acme",
+        existing_pages=[{"id": 1, "slug": "home", "title": "Home", "status": "publish"}],
+        feedback=None,
+        api_key="sk-test",
+    )
+    assert result["sections"] == FAKE_SECTIONS
+
+
+@patch("src.nodes.generate.generate_sections", return_value=FAKE_SECTIONS)
+@patch("src.nodes.generate.load_config")
+def test_generate_increments_attempts(mock_config, mock_gen) -> None:
+    from src.config import Settings
+
+    mock_config.return_value = Settings(
+        anthropic_api_key="sk-test",
+        wp_site_url="https://test.local",
+        wp_username="admin",
+        wp_app_password="pass",
+    )
+
+    state: PipelineState = {
+        "brief_content": "brief",
+        "wp_existing_pages": [],
+        "generation_attempts": 1,
+        "errors": [],
+    }
+    result = generate(state)
+
+    assert result["generation_attempts"] == 2
+
+
+@patch("src.nodes.generate.generate_sections", return_value=FAKE_SECTIONS)
+@patch("src.nodes.generate.load_config")
+def test_generate_passes_feedback(mock_config, mock_gen) -> None:
+    from src.config import Settings
+
+    mock_config.return_value = Settings(
+        anthropic_api_key="sk-test",
+        wp_site_url="https://test.local",
+        wp_username="admin",
+        wp_app_password="pass",
+    )
+
+    state: PipelineState = {
+        "brief_content": "brief",
+        "wp_existing_pages": [],
+        "generation_attempts": 0,
+        "generation_feedback": "Make it shorter",
+        "errors": [],
+    }
+    generate(state)
+
+    _, kwargs = mock_gen.call_args
+    assert kwargs["feedback"] == "Make it shorter"
+
+
+@patch("src.nodes.generate.generate_sections")
+@patch("src.nodes.generate.load_config")
+def test_generate_handles_api_failure(mock_config, mock_gen) -> None:
+    from src.config import Settings
+
+    mock_config.return_value = Settings(
+        anthropic_api_key="sk-test",
+        wp_site_url="https://test.local",
+        wp_username="admin",
+        wp_app_password="pass",
+    )
+    mock_gen.side_effect = RuntimeError("API exploded")
+
+    state: PipelineState = {
+        "brief_content": "brief",
+        "wp_existing_pages": [],
+        "generation_attempts": 0,
+        "errors": [],
+    }
+    result = generate(state)
+
+    assert result["sections"] == []
+    assert result["generation_attempts"] == 1
+    assert any("generation failed" in e.lower() for e in result["errors"])
+
+
+# --- T-09: review node ---
+
+from src.nodes.review import review
+
+
+def test_review_approve(monkeypatch) -> None:
+    monkeypatch.setattr("builtins.input", lambda prompt: "a")
+
+    state: PipelineState = {
+        "client_name": "Acme Corp",
+        "sections": FAKE_SECTIONS,
+        "errors": [],
+    }
+    result = review(state)
+
+    assert result["approval_status"] == "approved"
+
+
+def test_review_reject_with_feedback(monkeypatch) -> None:
+    inputs = iter(["r", "Make the headings punchier"])
+    monkeypatch.setattr("builtins.input", lambda prompt: next(inputs))
+
+    state: PipelineState = {
+        "client_name": "Acme Corp",
+        "sections": FAKE_SECTIONS,
+        "errors": [],
+    }
+    result = review(state)
+
+    assert result["approval_status"] == "rejected"
+    assert result["generation_feedback"] == "Make the headings punchier"
+
+
+def test_review_quit(monkeypatch) -> None:
+    monkeypatch.setattr("builtins.input", lambda prompt: "q")
+
+    state: PipelineState = {
+        "client_name": "Acme Corp",
+        "sections": FAKE_SECTIONS,
+        "errors": [],
+    }
+    result = review(state)
+
+    assert result["approval_status"] == "rejected"
+    assert result["generation_attempts"] == 3
