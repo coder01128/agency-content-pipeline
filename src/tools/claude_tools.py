@@ -89,7 +89,7 @@ def generate_sections(
         try:
             response = client.messages.create(
                 model="claude-sonnet-5",
-                max_tokens=4096,
+                max_tokens=16384,
                 system=_SYSTEM_PROMPT,
                 messages=[{"role": "user", "content": user_content}],
                 tools=[SECTION_TOOL],
@@ -106,6 +106,9 @@ def generate_sections(
             ) from exc
         except anthropic.APIError as exc:
             raise ClaudeToolError(f"Claude API error: {exc}") from exc
+
+    if response.stop_reason == "max_tokens":
+        raise ClaudeToolError("Claude response truncated (max_tokens reached). Try a shorter brief.")
 
     for block in response.content:
         if block.type == "tool_use" and block.name == "create_sections":
