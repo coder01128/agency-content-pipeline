@@ -54,15 +54,6 @@ def _wp_create_response(call_num: int) -> dict:
     }
 
 
-def _wp_update_response() -> dict:
-    return {
-        "id": 2,
-        "slug": "home",
-        "title": "Home",
-        "status": "draft",
-        "link": "https://test.local/home/",
-    }
-
 
 # ---------------------------------------------------------------------------
 # T-12: Integration tests
@@ -71,7 +62,6 @@ def _wp_update_response() -> dict:
 
 @patch("builtins.input", return_value="a")
 @patch("src.nodes.notify.load_config")
-@patch("src.nodes.publish.update_draft_page", return_value=_wp_update_response())
 @patch("src.nodes.publish.create_draft_page", return_value=_wp_create_response(1))
 @patch("src.nodes.publish.load_config")
 @patch("src.nodes.generate.generate_sections", return_value=MOCK_SECTIONS)
@@ -85,7 +75,6 @@ def test_happy_path_e2e(
     mock_gen_sections,
     mock_pub_cfg,
     mock_pub_create,
-    mock_pub_update,
     mock_notify_cfg,
     mock_input,
 ):
@@ -112,7 +101,6 @@ def test_happy_path_e2e(
 
 
 @patch("src.nodes.notify.load_config")
-@patch("src.nodes.publish.update_draft_page", return_value=_wp_update_response())
 @patch("src.nodes.publish.create_draft_page", return_value=_wp_create_response(1))
 @patch("src.nodes.publish.load_config")
 @patch("src.nodes.generate.generate_sections", return_value=MOCK_SECTIONS)
@@ -126,7 +114,6 @@ def test_reject_then_approve_e2e(
     mock_gen_sections,
     mock_pub_cfg,
     mock_pub_create,
-    mock_pub_update,
     mock_notify_cfg,
     monkeypatch,
 ):

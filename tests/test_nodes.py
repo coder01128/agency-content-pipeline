@@ -340,16 +340,16 @@ def test_publish_creates_new_page(mock_config, mock_create) -> None:
     mock_create.assert_called_once()
 
 
-@patch("src.nodes.publish.update_draft_page")
+@patch("src.nodes.publish.create_draft_page")
 @patch("src.nodes.publish.load_config")
-def test_publish_updates_existing_page(mock_config, mock_update) -> None:
+def test_publish_creates_draft_alongside_existing_page(mock_config, mock_create) -> None:
     mock_config.return_value = _make_settings()
-    mock_update.return_value = {
-        "id": 2,
-        "slug": "home",
+    mock_create.return_value = {
+        "id": 21,
+        "slug": "home-draft",
         "title": "Home",
         "status": "draft",
-        "link": "https://test.local/home/",
+        "link": "https://test.local/?page_id=21",
     }
 
     state: PipelineState = {
@@ -366,32 +366,32 @@ def test_publish_updates_existing_page(mock_config, mock_update) -> None:
     }
     result = publish(state)
 
-    assert result["draft_urls"] == ["https://test.local/home/"]
-    mock_update.assert_called_once_with(
-        "https://test.local", "admin", "pass", 2, "Home", "<p>Updated home</p>"
+    assert result["draft_urls"] == ["https://test.local/?page_id=21"]
+    mock_create.assert_called_once_with(
+        "https://test.local", "admin", "pass", "Home", "<p>Updated home</p>", "home-draft"
     )
 
 
 @patch("src.nodes.publish.create_draft_page")
-@patch("src.nodes.publish.update_draft_page")
 @patch("src.nodes.publish.load_config")
-def test_publish_all_calls_use_draft_status(mock_config, mock_update, mock_create) -> None:
-    """CRITICAL SAFETY TEST: publish node must only ever produce draft pages."""
+def test_publish_never_updates_existing_pages(mock_config, mock_create) -> None:
+    """CRITICAL SAFETY TEST: publish node must only create drafts, never update existing pages."""
     mock_config.return_value = _make_settings()
-    mock_create.return_value = {
-        "id": 30,
-        "slug": "new",
-        "title": "New",
-        "status": "draft",
-        "link": "https://test.local/?page_id=30",
-    }
-    mock_update.return_value = {
-        "id": 2,
-        "slug": "home",
-        "title": "Home",
-        "status": "draft",
-        "link": "https://test.local/home/",
-    }
+
+    call_slugs: list[str] = []
+
+    def track_create(*args, **kwargs):
+        slug = args[5]
+        call_slugs.append(slug)
+        return {
+            "id": 30 + len(call_slugs),
+            "slug": slug,
+            "title": args[3],
+            "status": "draft",
+            "link": f"https://test.local/?page_id={30 + len(call_slugs)}",
+        }
+
+    mock_create.side_effect = track_create
 
     state: PipelineState = {
         "sections": [
@@ -401,15 +401,12 @@ def test_publish_all_calls_use_draft_status(mock_config, mock_update, mock_creat
         "wp_existing_pages": [{"id": 2, "slug": "home", "title": "Home", "status": "publish"}],
         "errors": [],
     }
-    publish(state)
+    result = publish(state)
 
-    assert mock_update.called
-    assert mock_create.called
-    # The safety invariant is enforced inside wordpress.py (create_draft_page
-    # and update_draft_page hard-code status="draft"). Publish node only calls
-    # those two functions — never a raw HTTP call — so draft-only is guaranteed
-    # by construction. This test verifies the node routes correctly to those
-    # functions rather than bypassing them.
+    assert mock_create.call_count == 2
+    assert call_slugs[0] == "home-draft"
+    assert call_slugs[1] == "new"
+    assert len(result["draft_urls"]) == 2
 
 
 @patch("src.nodes.publish.create_draft_page")

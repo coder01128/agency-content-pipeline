@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from src.config import load_config
 from src.state import PipelineState
-from src.tools.wordpress import create_draft_page, update_draft_page
+from src.tools.wordpress import create_draft_page
 
 
 def publish(state: PipelineState) -> dict:
@@ -16,32 +16,23 @@ def publish(state: PipelineState) -> dict:
 
     sections = state.get("sections", [])
     existing_pages = state.get("wp_existing_pages", [])
-    slug_to_id: dict[str, int] = {p["slug"]: p["id"] for p in existing_pages}
+    existing_slugs: set[str] = {p["slug"] for p in existing_pages}
 
     draft_urls: list[str] = []
 
     for section in sections:
         try:
-            target = section.get("target_page")
-            if target and target in slug_to_id:
-                result = update_draft_page(
-                    settings.wp_site_url,
-                    settings.wp_username,
-                    settings.wp_app_password,
-                    slug_to_id[target],
-                    section["title"],
-                    section["body"],
-                )
-            else:
-                slug = target or section["title"].lower().replace(" ", "-")
-                result = create_draft_page(
-                    settings.wp_site_url,
-                    settings.wp_username,
-                    settings.wp_app_password,
-                    section["title"],
-                    section["body"],
-                    slug,
-                )
+            slug = section.get("target_page") or section["title"].lower().replace(" ", "-")
+            if slug in existing_slugs:
+                slug = f"{slug}-draft"
+            result = create_draft_page(
+                settings.wp_site_url,
+                settings.wp_username,
+                settings.wp_app_password,
+                section["title"],
+                section["body"],
+                slug,
+            )
             draft_urls.append(result["link"])
         except Exception as exc:
             errors.append(f"Failed to publish '{section['title']}': {exc}")
